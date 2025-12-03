@@ -2,7 +2,7 @@
 <img src="./images/codefuse_logo.png" width="70%">
 </div>
 
-## Codefuse-APAR
+## CodeFuse-Agent
 **Codefuse-APAR** is a state-of-the-art framework for Automated Program Repair (APR) designed to significantly enhance the accuracy and efficiency of software bug fixes through a multi-dimensional, multi-layered strategy. While traditional APR methods are often confined to single-path searches, Codefuse-APAR innovatively combines **Step-wise Optimization** with **Trajectory-wise Verification**, building a dynamic, robust, and scalable repair system.
 
 We believe that high-quality code repair requires not only powerful generation capabilities but also precise judgment and verification mechanisms. Codefuse-APAR is built to solve this core challenge.
