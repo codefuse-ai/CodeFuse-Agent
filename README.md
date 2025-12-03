@@ -16,7 +16,7 @@ We believe that high-quality code repair requires not only powerful generation c
 The core capabilities of Codefuse-Agent are built upon two synergistic strategies:
 
 ### 🛠️ PyCfuse
-框架
+
 
 ### 🛠️ TTS
 ![Codefuse Agent TTS FrameWork](./images/TTS.png)
