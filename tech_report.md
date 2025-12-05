@@ -102,7 +102,7 @@ Let there be $ M $ agent execution trajectories:
 
 $$ \mathcal{T} = \\{ T^{(1)}, T^{(2)}, \dots, T^{(M)} \\}, $$
 
-<font style="color:rgb(13, 18, 57);">where the </font>$ m $<font style="color:rgb(13, 18, 57);">-th trajectory is denoted as </font>$ T^{(m)} = \\{ s^{(m)}_1, s^{(m)}_2, \dots, s^{(m)}_{L_m} \\} $<font style="color:rgb(13, 18, 57);">, and </font>$ L_m $<font style="color:rgb(13, 18, 57);"> is its length. </font>$ s^{m}_i $<font style="color:rgb(13, 18, 57);">is the step it takes in </font>$ i_{th} $<font style="color:rgb(13, 18, 57);">iteration round. For each trajectory </font>$ T^{(m)} $<font style="color:rgb(13, 18, 57);">, we perform the following steps:</font>
+<font style="color:rgb(13, 18, 57);">where the </font>$ m $<font style="color:rgb(13, 18, 57);">-th trajectory is denoted as </font>$ T^{(m)} = \{ s^{(m)}_1, s^{(m)}_2, \dots, s^{(m)}_{L_m} \} $<font style="color:rgb(13, 18, 57);">, and </font>$ L_m $<font style="color:rgb(13, 18, 57);"> is its length. </font>$ s^{m}_i $<font style="color:rgb(13, 18, 57);">is the step it takes in </font>$ i_{th} $<font style="color:rgb(13, 18, 57);">iteration round. For each trajectory </font>$ T^{(m)} $<font style="color:rgb(13, 18, 57);">, we perform the following steps:</font>
 
 1. **Filter debugging-relevant steps**<font style="color:rgb(13, 18, 57);">:</font>
 
@@ -131,7 +131,7 @@ $$ \mathcal{E} = \bigcup_{m=1}^{M} \mathcal{E}^{(m)}. $$
 <font style="color:rgb(13, 18, 57);">This approach ensures that context length remains bounded (by </font>$ N $<font style="color:rgb(13, 18, 57);">) while preserving only the most relevant tool interactions for debugging within each individual execution trace.</font>
 
 #### 3.2.2 Cross-Validation and Filtering
-Each candidate patch $ p_i $ is executed against the unified test suite $ T = \\{t_1, t_2, ..., t_n\\} $. We compute:
+Each candidate patch $ p_i $ is executed against the unified test suite $ T = \{t_1, t_2, ..., t_n\} $. We compute:
 
 $$ \text{score}(p_i) = \sum_{j=1}^{n} \mathbb{1}[\text{pass}(p_i, t_j)] $$
 
