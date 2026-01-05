@@ -332,26 +332,17 @@ def parse_args():
     parser = argparse.ArgumentParser(description='提取测试用例')
     
     # API配置参数
-    parser.add_argument('--api-key', type=str, default=os.getenv('API-KEY', ''),
-                        help='API密钥，默认从环境变量API-KEY读取')
-    parser.add_argument('--base-url', type=str, default=os.getenv('BASE-URL', ''),
-                        help='基础URL，默认从环境变量BASE-URL读取')
-    parser.add_argument('--model', type=str, default=os.getenv('MODEL', 'Kimi-K2-Instruct'),
-                        help='模型名称，默认从环境变量MODEL读取')
-    parser.add_argument('--temperature', type=float, default=float(os.getenv('TEMPERATURE', '0')),
-                        help='温度参数，默认从环境变量TEMPERATURE读取')
-    parser.add_argument('--docker_name', type=str, default="test_case_generator",
-                        help='温度参数，默认从环境变量TEMPERATURE读取')
+    parser.add_argument('--api-key', type=str, default=os.getenv('API-KEY', ''), help='API密钥，默认从环境变量API-KEY读取')
+    parser.add_argument('--base-url', type=str, default=os.getenv('BASE-URL', ''), help='基础URL，默认从环境变量BASE-URL读取')
+    parser.add_argument('--model', type=str, default=os.getenv('MODEL', 'Kimi-K2-Instruct'), help='模型名称，默认从环境变量MODEL读取')
+    parser.add_argument('--temperature', type=float, default=float(os.getenv('TEMPERATURE', '0')), help='温度参数，默认从环境变量TEMPERATURE读取')
+    parser.add_argument('--docker_name', type=str, default="test_case_generator", help='docker命名')
     
     # 路径配置参数
-    parser.add_argument('--traj-root', type=str, required=True,
-                        help='轨迹文件根目录')
-    parser.add_argument('--data-path', type=str, default="./SWE-Bench_Verified/test-00000-of-00001.parquet",
-                        help='原始数据路径，默认为SWE-Bench_Verified测试数据')
-    parser.add_argument('--root', type=str, default=os.path.join(os.getcwd(), "0.2.0_k2-tts_4_test_case_20251209"),
-                        help='日志根目录，默认为当前目录下的cfuse_0.2.0_k2-tts_4_test_case_20251209')
-    parser.add_argument('--data-file', type=str, default="data.json",
-                        help='数据文件名，默认为data.json')
+    parser.add_argument('--traj-root', type=str, required=True, help='轨迹文件根目录')
+    parser.add_argument('--data-path', type=str, default="./SWE-Bench_Verified/test-00000-of-00001.parquet", help='原始数据路径，默认为SWE-Bench_Verified测试数据')
+    parser.add_argument('--root', type=str, default=os.path.join(os.getcwd(), "test_consolidate"), help='日志根目录，默认为当前目录下的cfuse_0.2.0_k2-tts_4_test_case_20251209')
+    parser.add_argument('--data-file', type=str, default="data.json", help='数据文件名，默认为data.json')
 
     # docker配置
     parser.add_argument('--docker-config-path', type=str, required=True, help='docker配置文件')

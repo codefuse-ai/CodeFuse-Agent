@@ -7,11 +7,11 @@ import argparse
 import regex as re
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from typing import List, Dict, Any
-from bench_eval.entrance.judge.prompts import judge_preference_prompt, judge_trae_selector_prompt
-from bench_eval.entrance.swe_bench.docker import Docker
-from bench_eval.utils import prompt_format
-from bench_eval.entrance.swe_bench.utils import run_cmd, filter_diff
-from config.opensource_model_map import OPENSOURCE_MODEL_INFO
+from prompts import judge_preference_prompt, judge_trae_selector_prompt
+from utils.docker import Docker
+from utils.prompt_utils import prompt_format
+from utils.cmd_utils import run_cmd
+from utils.git_utils import filter_diff
 
 logging.basicConfig(
     level=logging.INFO,
@@ -210,10 +210,9 @@ def _process_single_augment_task(item: Dict[str, Any], process_id: int, root: st
         try:
             # 执行
             model = model_config.get("model", os.getenv('MODEL', "Kimi-K2-Instruct"))
-            api_key = OPENSOURCE_MODEL_INFO[model]["api_key"]
-            base_url = OPENSOURCE_MODEL_INFO[model]["base_url"]
-            temperature = OPENSOURCE_MODEL_INFO[model].get("temperature", "1")
-            temperature = model_config.get("temperature", temperature)
+            api_key = model_config["api_key"]
+            base_url = model_config["base_url"]
+            temperature = model_config.get("temperature", "1")
 
             response_str = docker.exec_cmd(
                 cmd=f"cd /testbed && conda run -n testbed /root/.local/bin/pycfuse --temperature {temperature} --api-key {api_key} --base-url {base_url} --model {model} -pp /workspace/logs/{instance_id}.txt --logs-dir /workspace/logs/ --agent-file /workspace/logs/agent/code_judge_agent.md --yolo",
