@@ -194,7 +194,7 @@ def _process_single_augment_task(item: Dict[str, Any], process_id: int, root: st
             )
 
             run_cmd(
-                cmd=f"docker cp {os.getcwd()}/config/agent {docker.container_name}:/workspace/logs/",
+                cmd=f"docker cp {os.getcwd()}/configs/agent {docker.container_name}:/workspace/logs/",
                 verbose=False
             )
         except Exception as e:

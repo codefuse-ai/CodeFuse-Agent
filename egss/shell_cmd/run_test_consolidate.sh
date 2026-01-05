@@ -6,6 +6,7 @@ traj_root="$root/traj"
 patch_root="$root/patches"
 score_path="$root/x.json"
 data_path="path/to/swe-bench/test-00000-of-00001.parquet"
+docker_config_path=""
 
 api_key=""
 base_url=""
@@ -21,6 +22,7 @@ python run_extract_test_case.py \
   --data-path $data_path \
   --traj-root  $traj_root\
   --root $test_consolidate_root \
+  --docker-config-path $docker_config_path \
   --window-size 2 \
   --use-existing-data \
   --num-processes 8 \
@@ -33,6 +35,7 @@ python run_deibase_apply_test_case.py \
   --docker_name "k2_tts_8_test_case_generator" \
   --temperature 0 \
   --root $test_consolidate_root \
+  --docker-config-path $docker_config_path \
   --patch-root $patch_root \
   --num-processes 8 \
   --save-interval 2
@@ -47,5 +50,6 @@ python run_augment_async.py \
   --top-k 4 \
   --model-config $voting_model_config \
   --score-path $score_path \
+  --docker-config-path $docker_config_path \
   --num-processes 8 \
   --save-interval 2
