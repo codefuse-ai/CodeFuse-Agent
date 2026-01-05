@@ -1,5 +1,5 @@
 """
-Observability Module - Logging, Trajectory, and Metrics for CodeFuse Agent
+Observability Module - Logging, Trajectory, and Metrics for CFuse Agent
 
 This module provides comprehensive observability capabilities including:
 - Debug logging using structlog (JSONL format)

@@ -1,5 +1,5 @@
 """
-CodeFuse Agent - A lightweight, high-performance AI programming assistant framework
+CFuse Agent - A lightweight, high-performance AI programming assistant framework
 """
 
 import importlib.metadata

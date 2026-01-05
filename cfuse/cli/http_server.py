@@ -43,7 +43,7 @@ _http_logger: Optional[HTTPLogger] = None
 
 def create_app() -> Flask:
     """Create and configure Flask application"""
-    # Set template folder to codefuse/cli/templates
+    # Set template folder to cfuse/cli/templates
     template_dir = Path(__file__).parent / "templates"
     app = Flask(__name__, template_folder=str(template_dir))
     
@@ -131,7 +131,7 @@ def create_app() -> Flask:
         """Health check endpoint for load balancers"""
         return jsonify({
             "status": "healthy",
-            "service": "codefuse-http-server"
+            "service": "http-server"
         }), 200
     
     @app.route('/metrics', methods=['GET'])

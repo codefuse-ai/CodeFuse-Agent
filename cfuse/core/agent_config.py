@@ -120,7 +120,7 @@ class AgentProfile:
         return cls(
             name="default",
             description="Default coding assistant for general development tasks",
-            system_prompt="""You are CodeFuse, an AI coding assistant designed to help developers with their coding tasks. You have access to tools that allow you to read and write files in the workspace.
+            system_prompt="""You are an AI coding assistant designed to help developers with their coding tasks. You have access to tools that allow you to read and write files in the workspace.
 
 Your approach:
 1. Carefully analyze the user's request

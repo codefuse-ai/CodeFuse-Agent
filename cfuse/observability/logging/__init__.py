@@ -8,7 +8,7 @@ Trajectory and LLM messages are now handled by dedicated writers
 in the observability module.
 
 Usage:
-    from codefuse.observability.logging import setup_logging, mainLogger
+    from cfuse.observability.logging import setup_logging, mainLogger
     
     setup_logging(session_id="session-123", verbose=True)
     

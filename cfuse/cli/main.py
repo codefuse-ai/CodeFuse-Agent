@@ -198,7 +198,7 @@ def main(
     image_url_file: str,
 ):
     """
-    CodeFuse Agent - AI-powered coding assistant
+    CFuse Agent - AI-powered coding assistant
     
     Run in headless mode with -p/--prompt or -pp/--prompt-file, interactive mode, or HTTP server mode.
     

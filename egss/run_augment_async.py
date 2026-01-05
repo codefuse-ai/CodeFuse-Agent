@@ -113,9 +113,9 @@ def post_process(response):
             solution_str = solution_str[think_end + len("</think>"):].strip()
 
         # 获取要提取的key
-        index = reward_fn.find("codefuse/")
+        index = reward_fn.find("cfuse/")
         if index != -1:
-            reward_fn = reward_fn[index + len("codefuse/"):]
+            reward_fn = reward_fn[index + len("cfuse/"):]
 
         matches = extract_pattern(solution_str, "json")
         if matches:

@@ -50,7 +50,7 @@ def run_interactive(
         session_info += f"\n[cyan]Resumed with {len(resumed_conversation)} messages[/cyan]"
     
     console.print(Panel(
-        f"[bold blue]CodeFuse Interactive Mode[/bold blue]\n\n"
+        f"[bold blue]Interactive Mode[/bold blue]\n\n"
         f"Agent: {agent_profile.name}\n"
         f"Model: {model_name}\n"
         f"{session_info}\n\n"

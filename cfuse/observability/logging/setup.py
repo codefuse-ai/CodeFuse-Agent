@@ -37,7 +37,7 @@ def _json_formatter(logger, method_name, event_dict):
 
 
 # Configure standard logging backend with NullHandler (silent before setup)
-stdlib_logger = logging.getLogger("codefuse.main")
+stdlib_logger = logging.getLogger("cfuse.main")
 stdlib_logger.addHandler(logging.NullHandler())
 stdlib_logger.propagate = False
 stdlib_logger.setLevel(logging.DEBUG)
@@ -58,7 +58,7 @@ structlog.configure(
 )
 
 # Create global logger instance (ready to use, silent before setup)
-mainLogger = structlog.get_logger("codefuse.main")
+mainLogger = structlog.get_logger("cfuse.main")
 
 
 def setup_logging(
@@ -96,7 +96,7 @@ def setup_logging(
     _session_dir = session_dir
     
     # Configure main logger: DEBUG level, file only
-    main_logger = logging.getLogger("codefuse.main")
+    main_logger = logging.getLogger("cfuse.main")
     main_logger.handlers.clear()  # Remove NullHandler
     main_handler = logging.FileHandler(session_dir / "main.log", mode='a', encoding='utf-8')
     main_handler.setLevel(logging.DEBUG)
@@ -122,7 +122,7 @@ def get_session_dir() -> Optional[Path]:
 
 def close_all_loggers():
     """Close all logger handlers and flush buffers"""
-    logger = logging.getLogger("codefuse.main")
+    logger = logging.getLogger("cfuse.main")
     for handler in logger.handlers[:]:
         handler.close()
         logger.removeHandler(handler)

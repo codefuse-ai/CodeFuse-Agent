@@ -46,8 +46,8 @@ logs/
 *.jsonl
 
 # Config
-.codefuse.yaml
-!.codefuse.yaml.example
+.cfuse.yaml
+!.cfuse.yaml.example
 
 # Trajectory data
 trajectories/
