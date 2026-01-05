@@ -354,7 +354,7 @@ def parse_args():
                         help='数据文件名，默认为data.json')
 
     # docker配置
-    parser.add_argument('--docker_config_path', type=str, required=True, help='docker配置文件')
+    parser.add_argument('--docker-config-path', type=str, required=True, help='docker配置文件')
 
     # 进程配置参数
     parser.add_argument('--window-size', type=int, default=2,
