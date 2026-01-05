@@ -20,6 +20,7 @@ def run_headless(
     components: Dict[str, Any],
     stream: bool = True,
     image_urls: tuple = tuple(),
+    tts: str = "default",
 ):
     """
     Run agent in headless mode (single prompt execution)
@@ -77,6 +78,7 @@ def run_headless(
     for event in agent_loop.run(
         user_query=user_query,
         stream=stream,
+            tts=tts,
     ):
         if event.type == "llm_done":
             if not stream:

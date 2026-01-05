@@ -1,8 +1,8 @@
 from typing import List, Any, Dict, Optional
 from dataclasses import dataclass, field
-from codefuse.core.agent_loop import AgentEvent
+from cfuse.core.agent_loop import AgentEvent
 from pathlib import Path
-from codefuse.llm.base import LLMResponse
+from cfuse.llm.base import LLMResponse
 import json
 
 @dataclass

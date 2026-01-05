@@ -1,12 +1,11 @@
 # nohup sh script/run_deibase_augment.sh > ./deibase_glm_tts_8.log 2>&1 &
 
-cd /home/jingli/workspace/training_recipe
-
 root=""
 deibase_root="$root/x"
 augment_root="$root/x"
 traj_root="$root/traj"
 patch_root="$root/patches"
+docker_config_path=""
 
 api_key=""
 base_url=""
@@ -24,6 +23,7 @@ python run_deibase.py \
   --data-path $data_path \
   --root $deibase_root \
   --patch-root $patch_root \
+  --docker-config-path $docker_config_path \
   --num-processes 8 \
   --save-interval 2
 
@@ -35,5 +35,6 @@ python run_augment_async.py \
   --patch-root $patch_root \
   --top-k 4 \
   --model-config $voting_model_config \
+  --docker-config-path $docker_config_path \
   --num-processes 8 \
   --save-interval 2

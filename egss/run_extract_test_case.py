@@ -6,8 +6,10 @@ import multiprocessing
 import argparse
 import sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from pathlib import Path
 from typing import List, Dict, Any
 
+from install_cfuse import install
 from utils.docker import Docker
 from utils.cmd_utils import run_cmd
 from prompts import judge_extract_test_case_prompt, test_content_prompt
@@ -25,6 +27,8 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+current_file = Path(__file__).resolve()
 
 
 def step(current_item, trajectory_root, dir_files, test_content=""):
@@ -74,7 +78,7 @@ def _process_single_item_task(item: Dict[str, Any], process_id: int, root: str, 
 
         # 创建独立的Docker容器
         docker = Docker(
-            image_name=f"reg.antgroup-inc.cn/swe-bench-image/{instance_id}",
+            image_name=item["image_name"],
             container_name=f"{instance_id}_{docker_name}_{process_id}"
         )
 
@@ -85,18 +89,9 @@ def _process_single_item_task(item: Dict[str, Any], process_id: int, root: str, 
 
         # step2 拉取脚手架代码，并安装依赖
         try:
-            pycfuse_package = "pycfuse-0.3.6-py3-none-any.whl"
-            docker.exec_cmd(
-                cmd=f"wget -P /tmp https://artifacts.antgroup-inc.cn/artifact/repositories/simple-dev/pycfuse/{pycfuse_package}",
-                verbose=False
-            )
-            docker.exec_cmd(
-                cmd=f"pipx install /tmp/{pycfuse_package}",
-                verbose=False
-            )
-            docker.exec_cmd(
-                cmd="mkdir -p /workspace/logs",
-                verbose=False
+            install(
+                docker=docker,
+                package_path=str(current_file.parent.parent)
             )
 
             instance_root = os.path.join(root, instance_id)
@@ -121,7 +116,7 @@ def _process_single_item_task(item: Dict[str, Any], process_id: int, root: str, 
                 verbose=False
             )
             run_cmd(
-                cmd=f"docker cp {os.getcwd()}/config/agent {docker.container_name}:/workspace/logs/",
+                cmd=f"docker cp {os.getcwd()}/configs/agent {docker.container_name}:/workspace/logs/",
                 verbose=False
             )
         except Exception as e:
@@ -135,7 +130,7 @@ def _process_single_item_task(item: Dict[str, Any], process_id: int, root: str, 
             temperature = os.getenv("TEMPERATURE", "0")
 
             docker.exec_cmd(
-                cmd=f"cd /testbed && conda run -n testbed /root/.local/bin/pycfuse --temperature {temperature} --api-key {api_key} --base-url {base_url} --model {model} -pp /workspace/logs/{instance_id}.txt --logs-dir /workspace/logs/ --agent-file /workspace/logs/agent/code_judge_agent.md --yolo",
+                cmd=f"cd /testbed && conda run -n testbed /root/.local/bin/cfuse --temperature {temperature} --api-key {api_key} --base-url {base_url} --model {model} -pp /workspace/logs/{instance_id}.txt --logs-dir /workspace/logs/ --agent-file /workspace/logs/agent/code_judge_agent.md --yolo",
                 verbose=True
             )
             file_content = docker.exec_cmd(
@@ -337,27 +332,21 @@ def parse_args():
     parser = argparse.ArgumentParser(description='提取测试用例')
     
     # API配置参数
-    parser.add_argument('--api-key', type=str, default=os.getenv('API-KEY', ''),
-                        help='API密钥，默认从环境变量API-KEY读取')
-    parser.add_argument('--base-url', type=str, default=os.getenv('BASE-URL', ''),
-                        help='基础URL，默认从环境变量BASE-URL读取')
-    parser.add_argument('--model', type=str, default=os.getenv('MODEL', 'Kimi-K2-Instruct'),
-                        help='模型名称，默认从环境变量MODEL读取')
-    parser.add_argument('--temperature', type=float, default=float(os.getenv('TEMPERATURE', '0')),
-                        help='温度参数，默认从环境变量TEMPERATURE读取')
-    parser.add_argument('--docker_name', type=str, default="test_case_generator",
-                        help='温度参数，默认从环境变量TEMPERATURE读取')
+    parser.add_argument('--api-key', type=str, default=os.getenv('API-KEY', ''), help='API密钥，默认从环境变量API-KEY读取')
+    parser.add_argument('--base-url', type=str, default=os.getenv('BASE-URL', ''), help='基础URL，默认从环境变量BASE-URL读取')
+    parser.add_argument('--model', type=str, default=os.getenv('MODEL', 'Kimi-K2-Instruct'), help='模型名称，默认从环境变量MODEL读取')
+    parser.add_argument('--temperature', type=float, default=float(os.getenv('TEMPERATURE', '0')), help='温度参数，默认从环境变量TEMPERATURE读取')
+    parser.add_argument('--docker_name', type=str, default="test_case_generator", help='docker命名')
     
     # 路径配置参数
-    parser.add_argument('--traj-root', type=str, required=True,
-                        help='轨迹文件根目录')
-    parser.add_argument('--data-path', type=str, default="/home/jingli/workspace/data/SWE-Bench_Verified/test-00000-of-00001.parquet",
-                        help='原始数据路径，默认为SWE-Bench_Verified测试数据')
-    parser.add_argument('--root', type=str, default=os.path.join(os.getcwd(), "pycfuse_0.2.0_k2-tts_4_test_case_20251209"),
-                        help='日志根目录，默认为当前目录下的pycfuse_0.2.0_k2-tts_4_test_case_20251209')
-    parser.add_argument('--data-file', type=str, default="data.json",
-                        help='数据文件名，默认为data.json')
-    
+    parser.add_argument('--traj-root', type=str, required=True, help='轨迹文件根目录')
+    parser.add_argument('--data-path', type=str, default="./SWE-Bench_Verified/test-00000-of-00001.parquet", help='原始数据路径，默认为SWE-Bench_Verified测试数据')
+    parser.add_argument('--root', type=str, default=os.path.join(os.getcwd(), "test_consolidate"), help='日志根目录，默认为当前目录下的test_consolidate')
+    parser.add_argument('--data-file', type=str, default="data.json", help='数据文件名，默认为data.json')
+
+    # docker配置
+    parser.add_argument('--docker-config-path', type=str, required=True, help='docker配置文件')
+
     # 进程配置参数
     parser.add_argument('--window-size', type=int, default=2,
                         help='窗口大小，默认为2')
@@ -403,6 +392,12 @@ if __name__ == "__main__":
         data = SWE_Processor.process_swe_bench(path=args.data_path)
         with open(data_file_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
+
+    with open(args.docker_config_path, "r", encoding="utf-8") as f:
+        docker_config = json.load(f)
+
+    for i, item in enumerate(data):
+        item["image_name"] = docker_config.get(item["instance_id"])
 
     retry_count = 0
     # 使用并行模式运行, 最大重试10次

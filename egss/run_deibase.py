@@ -5,11 +5,13 @@ import logging
 import multiprocessing
 import sys
 import argparse
+from pathlib import Path
 
 import regex as re
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from typing import List, Dict, Any
 from dataset.swe.processor import SWE_Processor
+from install_cfuse import install
 from utils.docker import Docker
 from utils.cmd_utils import run_cmd
 from utils.prompt_utils import prompt_format
@@ -26,6 +28,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+current_file = Path(__file__).resolve()
 
 def step(item):
     response = f"""Code Agent Generated Patch:
@@ -57,9 +60,9 @@ def post_process(response):
             solution_str = solution_str[think_end + len("</think>"):].strip()
 
         # 获取要提取的key
-        index = reward_fn.find("codefuse/")
+        index = reward_fn.find("cfuse/")
         if index != -1:
-            reward_fn = reward_fn[index + len("codefuse/"):]
+            reward_fn = reward_fn[index + len("cfuse/"):]
 
         matches = extract_pattern(solution_str, "json")
         if matches:
@@ -128,7 +131,7 @@ def _process_single_item_task(item: Dict[str, Any], process_id: int, root: str, 
         # 创建独立的Docker容器
         docker_name = os.getenv("DOCKER_NAME", "deibase_runner")
         docker = Docker(
-            image_name=f"reg.antgroup-inc.cn/swe-bench-image/{instance_id}",
+            image_name=item["image_name"],
             container_name=f"{instance_id}_{docker_name}_{process_id}"
         )
 
@@ -139,18 +142,9 @@ def _process_single_item_task(item: Dict[str, Any], process_id: int, root: str, 
 
         # step2 拉取脚手架代码，并安装依赖
         try:
-            pycfuse_package = "pycfuse-0.3.6-py3-none-any.whl"
-            docker.exec_cmd(
-                cmd=f"wget -P /tmp https://artifacts.antgroup-inc.cn/artifact/repositories/simple-dev/pycfuse/{pycfuse_package}",
-                verbose=False
-            )
-            docker.exec_cmd(
-                cmd=f"pipx install /tmp/{pycfuse_package}",
-                verbose=False
-            )
-            docker.exec_cmd(
-                cmd="mkdir -p /workspace/logs",
-                verbose=False
+            install(
+                docker=docker,
+                package_path=str(current_file.parent.parent)
             )
             # apply patch & prompt
             os.makedirs(os.path.join(root, instance_id), exist_ok=True)
@@ -208,7 +202,7 @@ def _process_single_item_task(item: Dict[str, Any], process_id: int, root: str, 
             temperature = os.getenv("TEMPERATURE", "0")
 
             response_str = docker.exec_cmd(
-                cmd=f"cd /testbed && conda run -n testbed /root/.local/bin/pycfuse --temperature {temperature} --api-key {api_key} --base-url {base_url} --model {model} -pp /workspace/logs/{instance_id}.txt --logs-dir /workspace/logs/ --agent-file /workspace/logs/agent/code_judge_agent.md --yolo",
+                cmd=f"cd /testbed && conda run -n testbed /root/.local/bin/cfuse --temperature {temperature} --api-key {api_key} --base-url {base_url} --model {model} -pp /workspace/logs/{instance_id}.txt --logs-dir /workspace/logs/ --agent-file /workspace/logs/agent/code_judge_agent.md --yolo",
                 verbose=True
             )
             # TODO 处理一下
@@ -373,34 +367,25 @@ def parse_args():
     parser = argparse.ArgumentParser(description='运行Deibase评估')
     
     # API配置参数
-    parser.add_argument('--api-key', type=str, default="",
-                        help='API密钥，默认从环境变量API-KEY读取')
-    parser.add_argument('--base-url', type=str, default="",
-                        help='基础URL，默认从环境变量BASE-URL读取')
-    parser.add_argument('--model', type=str, default="Kimi-K2-Instruct-0905",
-                        help='模型名称，默认从环境变量MODEL读取')
-    parser.add_argument('--docker-name', type=str, default="deibase",
-                        help='docker name')
-    parser.add_argument('--temperature', type=str, default="0",
-                        help='温度参数，默认从环境变量TEMPERATURE读取')
+    parser.add_argument('--api-key', type=str, default="", help='API密钥，默认从环境变量API-KEY读取')
+    parser.add_argument('--base-url', type=str, default="", help='基础URL，默认从环境变量BASE-URL读取')
+    parser.add_argument('--model', type=str, default="Kimi-K2-Instruct", help='模型名称，默认从环境变量MODEL读取')
+    parser.add_argument('--docker-name', type=str, default="deibase", help='docker name')
+    parser.add_argument('--temperature', type=str, default="0", help='温度参数，默认从环境变量TEMPERATURE读取')
     
     # 路径配置参数
-    parser.add_argument('--root', type=str, 
-                        help='日志根目录，默认为当前目录下的log_deibase_模型名_时间戳')
-    parser.add_argument('--patch-root', type=str, required=True,
-                        help='patch文件根目录')
-    parser.add_argument('--data-path', type=str, 
-                        help='原始数据文件路径，默认为/home/ubuntu/Public/swebench/data/test-00000-of-00001.parquet')
-    parser.add_argument('--data-file', type=str, default="data.json",
-                        help='数据文件名，默认为data.json')
+    parser.add_argument('--root', type=str, help='日志根目录，默认为当前目录下的log_deibase_模型名_时间戳')
+    parser.add_argument('--patch-root', type=str, required=True, help='patch文件根目录')
+    parser.add_argument('--data-path', type=str, required=True, help='原始数据路径，默认为SWE-Bench_Verified测试数据')
+    parser.add_argument('--data-file', type=str, default="data.json", help='数据文件名，默认为data.json')
+
+    # docker配置
+    parser.add_argument('--docker-config-path', type=str, required=True, help='docker配置文件')
     
     # 进程配置参数
-    parser.add_argument('--num-processes', type=int, default=multiprocessing.cpu_count(),
-                        help='并行进程数，默认为CPU核心数')
-    parser.add_argument('--save-interval', type=int, default=5,
-                        help='每完成多少个任务后保存一次，默认为5')
-    parser.add_argument('--instance_id', type=str, default=None,
-                        help='instance_id')
+    parser.add_argument('--num-processes', type=int, default=multiprocessing.cpu_count(), help='并行进程数，默认为CPU核心数')
+    parser.add_argument('--save-interval', type=int, default=5, help='每完成多少个任务后保存一次，默认为5')
+    parser.add_argument('--instance_id', type=str, default=None, help='instance_id')
     
     return parser.parse_args()
 
@@ -425,8 +410,6 @@ if __name__ == "__main__":
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         args.root = os.path.join(os.getcwd(), f"log_deibase_{args.model}_{timestamp}")
     
-    if not args.data_path:
-        args.data_path = "/home/ubuntu/Public/swebench/data/test-00000-of-00001.parquet"
 
     # 创建目录
     os.makedirs(args.root, exist_ok=True)
@@ -462,6 +445,11 @@ if __name__ == "__main__":
     if args.instance_id:
         data = [item for item in data if item["instance_id"] == args.instance_id]
         logger.info(f"过滤后数据量: {len(data)}")
+
+    with open(args.docker_config_path, "r", encoding="utf-8") as f:
+        docker_config = json.load(f)
+    for i, item in enumerate(data):
+        item["image_name"] = docker_config.get(item["instance_id"])
 
     # 使用并行模式运行
     retry_count = 0

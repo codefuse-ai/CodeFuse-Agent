@@ -5,19 +5,17 @@ from datetime import datetime, timezone
 from typing import Iterator, List, Any, Dict, Optional, Tuple
 import concurrent.futures
 
-from codefuse.core.utils_tts import BeamPath
-from codefuse.entrance.tts.git_tree.config.settings import GitTreeConfig
+from cfuse.core.utils_tts import BeamPath
+from cfuse.llm.base import MessageRole, Message, ToolCall
+from cfuse.observability import mainLogger
 
-from codefuse.llm.base import MessageRole, Message, ToolCall
-from codefuse.entrance.tts.prompt import tts_entropy
-from codefuse.observability import mainLogger
-
-from codefuse.core import ToolExecutor
-from codefuse.core.tts_processor import BaseTTSProcessor, TTSContext
-from codefuse.core.agent_loop import AgentEvent
+from cfuse.core import ToolExecutor
+from cfuse.core.tts_processor import BaseTTSProcessor, TTSContext
+from cfuse.core.agent_loop import AgentEvent
 from pathlib import Path
-from codefuse.observability.logging.setup import setup_logging
-from codefuse.entrance.tts.git_tree.managers.git_tree_manager_simplified import \
+from cfuse.observability.logging.setup import setup_logging
+from entrance.tts.git_tree.config.settings import GitTreeConfig
+from entrance.tts.git_tree.managers.git_tree_manager_simplified import \
     GitTreeManagerSimplified as GitTreeManager
 
 
@@ -39,8 +37,7 @@ class BeamSearchTTSProcessor(BaseTTSProcessor):
             # Use the same session directory structure as evaluation records
             session_dir = setup_logging(
                 session_id=context.context_engine.session_id,
-                workspace_path=base_workspace,
-                logs_dir=context.config.logging.logs_dir
+                workspace_path=base_workspace
             )
 
             # Create beam_search directory under session directory
@@ -198,8 +195,6 @@ class BeamSearchTTSProcessor(BaseTTSProcessor):
         # Convert messages to Message objects
         messages = self._dict_to_messages(messages_dict)
 
-        # Set current path ID for trajectory recording
-        context.context_engine.set_path_id(path.path_id)
 
         responses = self._generate_multiple_responses(context, messages, tools, count=beam_width)
         signatures = []
@@ -416,7 +411,8 @@ class BeamSearchTTSProcessor(BaseTTSProcessor):
         return self._process_scored_candidates(context, scored_candidates, judge_responses, judge_message,
                                                compression_records, beam_k)
 
-    def _evaluate_single_candidate(self, context: TTSContext, candidate_path: BeamPath, candidate_index: int) -> Dict[str, Any]:
+    def _evaluate_single_candidate(self, context: TTSContext, candidate_path: BeamPath, candidate_index: int,
+                                   tts_entropy=None) -> Dict[str, Any]:
         """Evaluate a single candidate path"""
         response = candidate_path.response
         path = candidate_path
@@ -625,7 +621,6 @@ class BeamSearchTTSProcessor(BaseTTSProcessor):
             new_commit_id = self.git_tree_manager._create_branch_and_commit(path.parent_commit_id, path.step, index)
             path.commit_id = new_commit_id
 
-        context.context_engine.set_path_id(path.path_id)
 
         tool_executor = ToolExecutor(
             tool_registry=context.tool_registry,
@@ -820,7 +815,6 @@ class BeamSearchTTSProcessor(BaseTTSProcessor):
             session_id=context.context_engine.session_id,
         )
 
-        context.context_engine.set_path_id(None)
         initial_messages = context.context_engine.get_messages_for_llm()
         initial_messages_dict = [msg.to_dict() for msg in initial_messages]
         self.git_tree_manager = self._ensure_git_tree_manager(context)
@@ -897,7 +891,6 @@ class BeamSearchTTSProcessor(BaseTTSProcessor):
                     status = "active" if path.is_stopped == "continue" else "stopped"
                     f.write(f"{branch_name} # {status}, score: {path.score}\n")
 
-        context.context_engine.set_path_id(None)
 
         yield AgentEvent(
             type="agent_done",

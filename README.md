@@ -50,7 +50,7 @@ pip install -e .
 
 ### Required Environment Variables
 
-CodeFuse-Agent requires three environment variables to be configured:
+Three environment variables need to be configured:
 
 ```bash
 # Required: Your OpenAI API key (or compatible API key)

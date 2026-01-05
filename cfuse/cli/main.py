@@ -7,6 +7,9 @@ import json
 import click
 from rich.console import Console
 
+# Import TTS modes to register processors
+import cfuse.core.tts_modes
+
 from cfuse.config import Config
 from cfuse.core import AgentProfileManager, AgentProfile
 from cfuse.cli.common import initialize_agent_components, handle_list_agents
@@ -164,41 +167,51 @@ console = Console()
     type=click.Path(exists=True),
     help="Read image URLs from JSON file (should contain a list of URLs)"
 )
+@click.option(
+    "--tts",
+    default="default",
+    help="TTS mode (default, beam_search)"
+)
 def main(
-    prompt: str,
-    prompt_file: str,
-    agent: str,
-    agent_file: str,
-    provider: str,
-    model: str,
-    api_key: str,
-    base_url: str,
-    verbose: bool,
-    logs_dir: str,
-    max_iterations: int,
-    stream: bool,
-    yolo: bool,
-    list_agents: bool,
-    config: str,
-    save_session: bool,
-    temperature: float,
-    top_p: float,
-    top_k: int,
-    parallel_tool_calls: bool,
-    think: bool,
-    session_id: str,
-    http: bool,
-    port: int,
-    host: str,
-    remote_tool_enabled: bool,
-    remote_tool_url: str,
-    remote_tool_instance_id: str,
-    remote_tool_timeout: int,
-    image_url: tuple,
-    image_url_file: str,
+        prompt: str,
+        prompt_file: str,
+        agent: str,
+        agent_file: str,
+        provider: str,
+        model: str,
+        api_key: str,
+        base_url: str,
+        verbose: bool,
+        logs_dir: str,
+        max_iterations: int,
+        stream: bool,
+        yolo: bool,
+        list_agents: bool,
+        config: str,
+        save_session: bool,
+        temperature: float,
+        top_p: float,
+        top_k: int,
+        parallel_tool_calls: bool,
+        think: bool,
+        session_id: str,
+        http: bool,
+        port: int,
+        host: str,
+        remote_tool_enabled: bool,
+        remote_tool_url: str,
+        remote_tool_instance_id: str,
+        remote_tool_timeout: int,
+        image_url: tuple,
+        image_url_file: str,
+        tts: str = "default",
+        judge_model: str = None,
+        judge_api_key: str = None,
+        judge_base_url: str = None,
+        judge_temperature: float = 0.2
 ):
     """
-    CodeFuse Agent - AI-powered coding assistant
+    CFuse Agent - AI-powered coding assistant
     
     Run in headless mode with -p/--prompt or -pp/--prompt-file, interactive mode, or HTTP server mode.
     
@@ -313,7 +326,21 @@ def main(
             agent_manager = AgentProfileManager()
             handle_list_agents(agent_manager)
             return
-        
+        if tts:
+            tts = tts
+        if temperature:
+            temperature = temperature
+
+        judge_config = {}
+        if judge_model:
+            judge_config["judge_model"] = judge_model
+        if judge_api_key:
+            judge_config["judge_api_key"] = judge_api_key
+        if judge_base_url:
+            judge_config["judge_base_url"] = judge_base_url
+        if judge_temperature:
+            judge_config["judge_temperature"] = judge_temperature
+
         # Load configuration
         cfg = Config.load(config)
         
@@ -337,6 +364,7 @@ def main(
             "remote_tool_url": remote_tool_url,
             "remote_tool_instance_id": remote_tool_instance_id,
             "remote_tool_timeout": remote_tool_timeout,
+            "tts": tts
         }
         
         cfg = Config.merge_with_cli_args(cfg, **cli_args)
@@ -371,6 +399,8 @@ def main(
             agent_profile=loaded_agent_profile,
             verbose=cfg.logging.verbose,
             session_id=session_id,
+            tts=tts,
+
         )
         
         # Route to appropriate mode based on presence of prompt
@@ -381,12 +411,14 @@ def main(
                 components=components,
                 stream=stream,
                 image_urls=tuple(all_image_urls),
+                tts=tts,
             )
         else:
             # Interactive mode: REPL
             run_interactive(
                 components=components,
                 stream=stream,
+                tts=tts,
             )
     
     except KeyboardInterrupt:
@@ -403,4 +435,3 @@ def main(
 
 if __name__ == "__main__":
     main()
-

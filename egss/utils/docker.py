@@ -68,6 +68,9 @@ class Docker:
         print("执行中...")
         return run_cmd(cmd, verbose=verbose, return_stderr=return_stderr, timeout=timeout)
 
+    def cp(self, src, dst):
+        return run_cmd(cmd=f"docker cp {src} {self.container_name}:{dst}", verbose=False)
+
     def shutdown(self):
         print(f"关闭当前docker...")
         run_cmd(f"docker stop {self.container_name}")

@@ -2,6 +2,6 @@ include README.md
 include LICENSE
 include requirements.txt
 include requirements-dev.txt
-recursive-include codefuse/tools/utils/ripgrep *
-recursive-include codefuse/cli/templates *.html
+recursive-include cfuse/tools/utils/ripgrep *
+recursive-include cfuse/cli/templates *.html
 

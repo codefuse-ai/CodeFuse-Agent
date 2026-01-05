@@ -1,11 +1,11 @@
 from typing import Iterator, Any
 
-from codefuse.core.utils_tts import _handle_streaming_llm
-from codefuse.observability import mainLogger
+from cfuse.core.utils_tts import _handle_streaming_llm
+from cfuse.observability import mainLogger
 
-from codefuse.core import ToolExecutor
-from codefuse.core.tts_processor import BaseTTSProcessor, TTSContext
-from codefuse.core.agent_loop import AgentEvent
+from cfuse.core import ToolExecutor
+from cfuse.core.tts_processor import BaseTTSProcessor, TTSContext
+from cfuse.core.agent_loop import AgentEvent
 
 
 
@@ -33,7 +33,7 @@ class DefaultTTSProcessor(BaseTTSProcessor):
             metrics_collector=context.metrics_collector,
         )
         mainLogger.info(
-            "进入普通",
+            "start default",
             iteration=iteration,
             max_iterations=context.max_iterations,
             session_id=context.context_engine.session_id,

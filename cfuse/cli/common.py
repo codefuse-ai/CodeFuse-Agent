@@ -313,6 +313,7 @@ def initialize_agent_components(
     verbose: bool,
     agent_profile: Optional[Any] = None,
     session_id: Optional[str] = None,
+    tts: str = "default",
 ) -> Dict[str, Any]:
     """
     Initialize all agent components (shared logic for headless and interactive modes)

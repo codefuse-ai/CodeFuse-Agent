@@ -21,7 +21,7 @@ def _get_bundled_ripgrep_path() -> Optional[Path]:
     """
     Get path to bundled ripgrep binary for current platform
     
-    Directory structure: codefuse/tools/utils/ripgrep/{arch}-{platform}/rg
+    Directory structure: cfuse/tools/utils/ripgrep/{arch}-{platform}/rg
     Example: x64-darwin, arm64-darwin, x64-linux, arm64-linux, x64-win32
     
     Returns:

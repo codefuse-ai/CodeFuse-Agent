@@ -145,8 +145,6 @@ class SWE_Processor(Preprocessor):
             ai_commit = line.get("ai commit", None)
             if not ai_commit:
                 continue
-            # ai_commit: https://code.alipay.com/lzy-test/linkc-fork/commit/6422dcffd4b84dc2d400aaa9627a7c35df0520d6
-            # 抽取commit_id和repo,比如上面这个case要提取出：6422dcffd4b84dc2d400aaa9627a7c35df0520d6和linkc-fork
             parts = ai_commit.split('/')
             current_commit_id = parts[-1]  # 最后一个部分是commit_id
             repo = parts[-3]  # 倒数第三个部分是repo名称
