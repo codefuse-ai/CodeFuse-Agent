@@ -116,7 +116,7 @@ def _process_single_item_task(item: Dict[str, Any], process_id: int, root: str, 
                 verbose=False
             )
             run_cmd(
-                cmd=f"docker cp {os.getcwd()}/config/agent {docker.container_name}:/workspace/logs/",
+                cmd=f"docker cp {os.getcwd()}/configs/agent {docker.container_name}:/workspace/logs/",
                 verbose=False
             )
         except Exception as e:
