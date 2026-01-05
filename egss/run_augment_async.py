@@ -4,9 +4,11 @@ import multiprocessing
 import copy
 import os
 import argparse
+from pathlib import Path
 import regex as re
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from typing import List, Dict, Any
+from install_cfuse import install
 from prompts import judge_preference_prompt, judge_trae_selector_prompt
 from utils.docker import Docker
 from utils.prompt_utils import prompt_format
@@ -22,7 +24,7 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
-
+current_file = Path(__file__).resolve()
 
 def deibase_lambda(x):
     if "result" in x and "scalar" in x["result"] and x["result"]["scalar"] is not None:
@@ -143,9 +145,9 @@ def _process_single_augment_task(item: Dict[str, Any], process_id: int, root: st
         logger.info(f"进程{process_id}: 开始处理 {instance_id} 第{attempt_idx}次尝试")
 
         # 创建独立的Docker容器
-        docker_name = os.getenv("DOCKER-NAME", "augment_runner")
+        docker_name = os.getenv("DOCKER-NAME", "moe_augment_runner")
         docker = Docker(
-            image_name=f"reg.antgroup-inc.cn/swe-bench-image/{instance_id}",
+            image_name=item["image_name"],
             container_name=f"{instance_id}_{docker_name}_{process_id}"
         )
 
@@ -156,18 +158,9 @@ def _process_single_augment_task(item: Dict[str, Any], process_id: int, root: st
 
         # step2 拉取脚手架代码，并安装依赖
         try:
-            pycfuse_package = "pycfuse-0.3.6-py3-none-any.whl"
-            docker.exec_cmd(
-                cmd=f"wget -P /tmp https://artifacts.antgroup-inc.cn/artifact/repositories/simple-dev/pycfuse/{pycfuse_package}",
-                verbose=False
-            )
-            docker.exec_cmd(
-                cmd=f"pipx install /tmp/{pycfuse_package}",
-                verbose=False
-            )
-            docker.exec_cmd(
-                cmd="mkdir -p /workspace/logs",
-                verbose=False
+            install(
+                docker=docker,
+                package_path=str(current_file.parent.parent)
             )
 
             prompt, candidate_patches_id2patch = step(item, patch_root=patch_root, instance_id=instance_id, top_k=top_k, model_config=model_config)
@@ -215,7 +208,7 @@ def _process_single_augment_task(item: Dict[str, Any], process_id: int, root: st
             temperature = model_config.get("temperature", "1")
 
             response_str = docker.exec_cmd(
-                cmd=f"cd /testbed && conda run -n testbed /root/.local/bin/pycfuse --temperature {temperature} --api-key {api_key} --base-url {base_url} --model {model} -pp /workspace/logs/{instance_id}.txt --logs-dir /workspace/logs/ --agent-file /workspace/logs/agent/code_judge_agent.md --yolo",
+                cmd=f"cd /testbed && conda run -n testbed /root/.local/bin/cfuse --temperature {temperature} --api-key {api_key} --base-url {base_url} --model {model} -pp /workspace/logs/{instance_id}.txt --logs-dir /workspace/logs/ --agent-file /workspace/logs/agent/code_judge_agent.md --yolo",
                 verbose=True
             )
 
@@ -415,43 +408,32 @@ def parse_args():
     parser = argparse.ArgumentParser(description='运行增强异步评估')
 
     # API配置参数
-    parser.add_argument('--api-key', type=str, default=os.getenv('API-KEY', ''),
-                        help='API密钥，默认从环境变量API-KEY读取')
-    parser.add_argument('--base-url', type=str, default=os.getenv('BASE-URL', ''),
-                        help='基础URL，默认从环境变量BASE-URL读取')
-    parser.add_argument('--model', type=str, default=os.getenv('MODEL', 'Kimi-K2-Instruct'),
-                        help='模型名称，默认从环境变量MODEL读取')
-    parser.add_argument('--temperature', type=float, default="0",
-                        help='温度参数，默认从环境变量TEMPERATURE读取')
-    parser.add_argument('--docker-name', type=str, default=os.getenv('DOCKER-NAME', 'augment_runner'),
-                        help='Docker容器名称，默认从环境变量DOCKER-NAME读取')
+    parser.add_argument('--api-key', type=str, default=os.getenv('API-KEY', ''), help='API密钥，默认从环境变量API-KEY读取')
+    parser.add_argument('--base-url', type=str, default=os.getenv('BASE-URL', ''), help='基础URL，默认从环境变量BASE-URL读取')
+    parser.add_argument('--model', type=str, default=os.getenv('MODEL', 'Kimi-K2-Instruct'), help='模型名称，默认从环境变量MODEL读取')
+    parser.add_argument('--temperature', type=float, default="0", help='温度参数，默认从环境变量TEMPERATURE读取')
+    parser.add_argument('--docker-name', type=str, default=os.getenv('DOCKER-NAME', 'augment_runner'), help='Docker容器名称，默认从环境变量DOCKER-NAME读取')
 
     # 路径配置参数
-    parser.add_argument('--root', type=str, default=os.path.join(os.getcwd(), "augment_async_output"),
-                        help='日志根目录，默认为当前目录下的augment_async_output')
+    parser.add_argument('--root', type=str, default=os.path.join(os.getcwd(), "augment_async_output"), help='日志根目录，默认为当前目录下的augment_async_output')
     parser.add_argument('--score-path', type=str, help='score目录地址')
-    parser.add_argument('--data-path', type=str, required=True,
-                        help='输入数据文件路径')
-    parser.add_argument('--patch-root', type=str, required=True,
-                        help='patch文件根目录')
-    parser.add_argument('--data-file', type=str, default="data.json",
-                        help='数据文件名，默认为data.json')
+    parser.add_argument('--data-path', type=str, required=True, help='输入数据文件路径')
+    parser.add_argument('--patch-root', type=str, required=True, help='patch文件根目录')
+    parser.add_argument('--data-file', type=str, default="data.json", help='数据文件名，默认为data.json')
 
     # 算法配置参数
-    parser.add_argument('--top-k', type=int, default=3,
-                        help='选择的top_k个patch，默认为3')
-    parser.add_argument('--model-config', type=str, required=True,
-                        help='模型配置文件路径，JSON格式，包含模型列表配置')
+    parser.add_argument('--top-k', type=int, default=3, help='选择的top_k个patch，默认为3')
+    parser.add_argument('--model-config', type=str, required=True, help='模型配置文件路径，JSON格式，包含模型列表配置')
+
+    # docker配置
+    parser.add_argument('--docker-config-path', type=str, required=True, help='docker配置文件')
 
     # 进程配置参数
-    parser.add_argument('--num-processes', type=int, default=multiprocessing.cpu_count(),
-                        help='并行进程数，默认为CPU核心数')
-    parser.add_argument('--save-interval', type=int, default=5,
-                        help='每完成多少个任务后保存一次，默认为5')
+    parser.add_argument('--num-processes', type=int, default=multiprocessing.cpu_count(), help='并行进程数，默认为CPU核心数')
+    parser.add_argument('--save-interval', type=int, default=5, help='每完成多少个任务后保存一次，默认为5')
 
     # 过滤参数
-    parser.add_argument('--instance-id', type=str,
-                        help='只处理指定instance_id的数据')
+    parser.add_argument('--instance-id', type=str, help='只处理指定instance_id的数据')
 
     return parser.parse_args()
 
@@ -499,6 +481,12 @@ if __name__ == "__main__":
             json.dump(data, f, ensure_ascii=False, indent=4)
 
     print(f"TOP K: {args.top_k}, MAJORITY VOTE: {len(model_list)}")
+
+    with open(args.docker_config_path, "r", encoding="utf-8") as f:
+        docker_config = json.load(f)
+
+    for i, item in enumerate(data):
+        item["image_name"] = docker_config.get(item["instance_id"])
 
     # 过滤数据（如果指定了instance_id）
     # if args.instance_id:
