@@ -6,10 +6,6 @@ import os
 def path_to_slug(path: str) -> str:
     """
     Convert file path to slug suitable for directory names
-    
-    Examples:
-        /Users/mingmu/projects/app -> Users-mingmu-projects-app
-        /home/user/my project -> home-user-my_project
     """
     abs_path = os.path.abspath(path)
     

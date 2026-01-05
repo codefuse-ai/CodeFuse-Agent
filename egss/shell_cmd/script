@@ -1,0 +1,39 @@
+python run_extract_test_case.py \
+  --api-key B1SiyMnqE3szV5DUChNCELoVfz7gfJPc \
+  --base-url https://antnluservice.alipay.com/api/llm/aistudio/v1 \
+  --model "Kimi-K2-Instruct" \
+  --docker_name "k2_tts_4_test_case_generator" \
+  --temperature 0 \
+  --data-path /home/jingli/workspace/data/example/swe_data_example.jsonl \
+  --docker-config-path /home/jingli/workspace/data/example/example_docker_config.json \
+  --traj-root /home/jingli/workspace/data/pycfuse_0.2.0_KImi-K2-Instruct_temp1_tts_4/traj \
+  --root "./debug_root" \
+  --window-size 2 \
+  --use-existing-data \
+  --num-processes 1 \
+  --save-interval 1
+
+
+python run_apply_test_case.py \
+    --api-key B1SiyMnqE3szV5DUChNCELoVfz7gfJPc \
+    --base-url https://antnluservice.alipay.com/api/llm/aistudio/v1 \
+    --model "Kimi-K2-Instruct" \
+    --docker_name "k2_tts_4_test_case_generator" \
+    --temperature 0 \
+    --root ./debug_root \
+    --docker-config-path /home/jingli/workspace/data/example/example_docker_config.json \
+    --patch-root /home/jingli/workspace/data/pycfuse_0.2.0_KImi-K2-Instruct_temp1_tts_4/patches \
+    --num-processes 1 \
+    --save-interval 1
+
+
+python run_augment_async.py \
+  --docker-name "k2_tts_4_moe_augment_runner" \
+  --data-path "./debug_root/data.json" \
+  --root "./augment_debug_root" \
+  --patch-root /home/jingli/workspace/data/pycfuse_0.2.0_KImi-K2-Instruct_temp1_tts_4/patches \
+  --model-config /home/jingli/workspace/data/example/example_moe_augment_model_config.json \
+  --score-path /home/jingli/workspace/data/pycfuse_0.2.0_KImi-K2-Instruct_temp1_tts_4/score-pycfuse_0.2.0_KImi-K2-Instruct_temp1_tts_4.json \
+  --docker-config-path /home/jingli/workspace/data/example/example_docker_config.json \
+  --num-processes 1 \
+  --save-interval 1
