@@ -1,7 +1,4 @@
 # nohup sh script/run_test_consolidate.sh > ./tca_k2-tts-8-all.log 2>&1 &
-
-cd /home/jingli/workspace/training_recipe
-
 root=""
 test_consolidate_root="$root/x"
 augment_root="$root/x"

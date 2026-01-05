@@ -341,7 +341,7 @@ def parse_args():
     # 路径配置参数
     parser.add_argument('--traj-root', type=str, required=True, help='轨迹文件根目录')
     parser.add_argument('--data-path', type=str, default="./SWE-Bench_Verified/test-00000-of-00001.parquet", help='原始数据路径，默认为SWE-Bench_Verified测试数据')
-    parser.add_argument('--root', type=str, default=os.path.join(os.getcwd(), "test_consolidate"), help='日志根目录，默认为当前目录下的cfuse_0.2.0_k2-tts_4_test_case_20251209')
+    parser.add_argument('--root', type=str, default=os.path.join(os.getcwd(), "test_consolidate"), help='日志根目录，默认为当前目录下的test_consolidate')
     parser.add_argument('--data-file', type=str, default="data.json", help='数据文件名，默认为data.json')
 
     # docker配置

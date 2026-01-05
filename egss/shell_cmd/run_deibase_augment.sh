@@ -1,7 +1,5 @@
 # nohup sh script/run_deibase_augment.sh > ./deibase_glm_tts_8.log 2>&1 &
 
-cd /home/jingli/workspace/training_recipe
-
 root=""
 deibase_root="$root/x"
 augment_root="$root/x"
