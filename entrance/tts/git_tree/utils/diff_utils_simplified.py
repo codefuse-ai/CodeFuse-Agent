@@ -1,4 +1,4 @@
-"""简化版的Diff处理工具类 - 使用Git命令"""
+"""Simplified Diff processing utility class - using Git commands"""
 import subprocess
 from pathlib import Path
 from typing import List, Optional
@@ -8,14 +8,14 @@ logger = logging.getLogger(__name__)
 
 
 class SimplifiedDiffProcessor:
-    """简化版的Diff处理类，使用Git命令"""
+    """Simplified Diff processing class using Git commands"""
     
     def __init__(self, repo_path: Path):
-        """初始化，指定Git仓库路径"""
+        """Initialize, specify Git repository path"""
         self.repo_path = repo_path
     
     def _run_git_command(self, cmd: List[str]) -> str:
-        """运行Git命令"""
+        """Run Git command"""
         try:
             result = subprocess.run(
                 ["git"] + cmd,
@@ -26,44 +26,44 @@ class SimplifiedDiffProcessor:
             )
             return result.stdout.strip()
         except subprocess.CalledProcessError as e:
-            logger.error(f"Git命令失败: {' '.join(cmd)}, 错误: {e.stderr}")
+            logger.error(f"Git command failed: {' '.join(cmd)}, error: {e.stderr}")
             raise
     
     def create_diff(self, from_ref: str, to_ref: str) -> str:
         """
-        创建两个引用之间的diff
+        Create diff between two references
         
         Args:
-            from_ref: 源引用（分支名、提交哈希等）
-            to_ref: 目标引用
+            from_ref: Source reference (branch name, commit hash, etc.)
+            to_ref: Target reference
             
         Returns:
-            diff内容
+            diff content
         """
         return self._run_git_command(["diff", from_ref, to_ref])
     
     def apply_diff_from_file(self, diff_file: Path) -> None:
         """
-        从diff文件应用更改
+        Apply changes from diff file
         
         Args:
-            diff_file: diff文件路径
+            diff_file: diff file path
         """
         if not diff_file.exists():
-            logger.warning(f"diff文件不存在: {diff_file}")
+            logger.warning(f"diff file does not exist: {diff_file}")
             return
             
         try:
-            # 使用git apply应用diff
+            # Use git apply to apply diff
             subprocess.run(
                 ["git", "apply", str(diff_file)],
                 cwd=self.repo_path,
                 check=True
             )
-            logger.info(f"应用diff文件: {diff_file}")
+            logger.info(f"Applied diff file: {diff_file}")
         except subprocess.CalledProcessError as e:
-            # 如果git apply失败，尝试使用patch
-            logger.warning(f"git apply失败，尝试使用patch: {e}")
+            # If git apply fails, try using patch
+            logger.warning(f"git apply failed, trying patch: {e}")
             try:
                 subprocess.run(
                     ["patch", "-p1", "<", str(diff_file)],
@@ -72,19 +72,19 @@ class SimplifiedDiffProcessor:
                     check=True
                 )
             except subprocess.CalledProcessError as e2:
-                logger.error(f"应用diff失败: {e2}")
+                logger.error(f"Failed to apply diff: {e2}")
                 raise
     
     def get_file_content_at_ref(self, file_path: str, ref: str) -> Optional[str]:
         """
-        获取指定引用下的文件内容
+        Get file content at specified reference
         
         Args:
-            file_path: 文件路径
-            ref: 引用（分支名、提交哈希等）
+            file_path: file path
+            ref: reference (branch name, commit hash, etc.)
             
         Returns:
-            文件内容，如果文件不存在则返回None
+            file content, returns None if file doesn't exist
         """
         try:
             content = self._run_git_command(["show", f"{ref}:{file_path}"])
@@ -94,40 +94,40 @@ class SimplifiedDiffProcessor:
     
     def list_changed_files(self, from_ref: str, to_ref: str) -> List[str]:
         """
-        获取两个引用之间更改的文件列表
+        Get list of changed files between two references
         
         Args:
-            from_ref: 源引用
-            to_ref: 目标引用
+            from_ref: source reference
+            to_ref: target reference
             
         Returns:
-            更改的文件列表
+            list of changed files
         """
         output = self._run_git_command(["diff", "--name-only", from_ref, to_ref])
         return [line.strip() for line in output.split('\n') if line.strip()]
     
     def has_changes(self, ref: str = "HEAD") -> bool:
         """
-        检查工作区是否有未提交的更改
+        Check if workspace has uncommitted changes
         
         Args:
-            ref: 引用，默认为HEAD
+            ref: reference, defaults to HEAD
             
         Returns:
-            是否有更改
+            whether there are changes
         """
         try:
             output = self._run_git_command(["diff", "--quiet", ref])
-            return False  # 没有更改
+            return False  # no changes
         except subprocess.CalledProcessError:
-            return True  # 有更改
+            return True  # has changes
     
     def get_current_branch(self) -> str:
-        """获取当前分支名"""
+        """Get current branch name"""
         return self._run_git_command(["rev-parse", "--abbrev-ref", "HEAD"])
     
     def branch_exists(self, branch_name: str) -> bool:
-        """检查分支是否存在"""
+        """Check if branch exists"""
         try:
             self._run_git_command(["rev-parse", "--verify", branch_name])
             return True
@@ -135,27 +135,27 @@ class SimplifiedDiffProcessor:
             return False
     
     def create_branch(self, branch_name: str, from_ref: str = "HEAD") -> None:
-        """创建新分支"""
+        """Create new branch"""
         self._run_git_command(["checkout", "-b", branch_name, from_ref])
-        logger.info(f"创建分支: {branch_name} 从 {from_ref}")
+        logger.info(f"Created branch: {branch_name} from {from_ref}")
     
     def switch_branch(self, branch_name: str) -> None:
-        """切换到指定分支"""
+        """Switch to specified branch"""
         self._run_git_command(["checkout", branch_name])
-        logger.info(f"切换到分支: {branch_name}")
+        logger.info(f"Switched to branch: {branch_name}")
     
     def delete_branch(self, branch_name: str, force: bool = False) -> None:
-        """删除分支"""
+        """Delete branch"""
         cmd = ["branch", "-D" if force else "-d", branch_name]
         self._run_git_command(cmd)
-        logger.info(f"删除分支: {branch_name}")
+        logger.info(f"Deleted branch: {branch_name}")
     
     def get_commit_hash(self, ref: str) -> str:
-        """获取引用的提交哈希"""
+        """Get commit hash for reference"""
         return self._run_git_command(["rev-parse", ref])
     
     def get_commit_info(self, ref: str) -> dict:
-        """获取提交信息"""
+        """Get commit information"""
         format_string = "%H|%an|%ae|%ad|%s"
         output = self._run_git_command(["log", "-1", f"--pretty=format:{format_string}", ref])
         parts = output.split("|")

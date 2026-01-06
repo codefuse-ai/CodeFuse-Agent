@@ -1,4 +1,4 @@
-"""文件操作工具类"""
+"""File operation utilities"""
 import shutil
 from pathlib import Path
 import logging
@@ -7,53 +7,53 @@ logger = logging.getLogger(__name__)
 
 
 class FileManager:
-    """文件管理工具类"""
+    """File management utilities"""
 
     @staticmethod
     def safe_copy_tree(src: Path, dst: Path) -> None:
-        """安全地复制目录树"""
+        """Safely copy directory tree"""
         if not src.exists():
-            raise FileNotFoundError(f"源目录不存在: {src}")
+            raise FileNotFoundError(f"Source directory does not exist: {src}")
 
         if dst.exists():
             shutil.rmtree(dst)
-            logger.info(f"目标目录已存在: {dst}")
+            logger.info(f"Target directory already exists: {dst}")
         try:
             shutil.copytree(src, dst)
-            logger.info(f"成功复制目录: {src} -> {dst}")
+            logger.info(f"Successfully copied directory: {src} -> {dst}")
         except Exception as e:
-            logger.error(f"复制目录失败: {src} -> {dst}, 错误: {e}")
+            logger.error(f"Failed to copy directory: {src} -> {dst}, error: {e}")
             raise e
 
     @staticmethod
     def safe_remove(path: Path) -> None:
-        """安全地删除文件或目录"""
+        """Safely delete file or directory"""
         if not path.exists():
             return
 
         try:
             if path.is_dir():
                 shutil.rmtree(path)
-                logger.info(f"成功删除目录: {path}")
+                logger.info(f"Successfully deleted directory: {path}")
             else:
                 path.unlink()
-                logger.info(f"成功删除文件: {path}")
+                logger.info(f"Successfully deleted file: {path}")
         except Exception as e:
-            logger.error(f"删除失败: {path}, 错误: {e}")
+            logger.error(f"Deletion failed: {path}, error: {e}")
             raise
 
     @staticmethod
     def ensure_directory(path: Path) -> None:
-        """确保目录存在"""
+        """Ensure directory exists"""
         try:
             path.mkdir(parents=True, exist_ok=True)
         except Exception as e:
-            logger.error(f"创建目录失败: {path}, 错误: {e}")
+            logger.error(f"Failed to create directory: {path}, error: {e}")
             raise
 
     @staticmethod
     def is_safe_path(base_path: Path, target_path: Path) -> bool:
-        """检查路径是否在安全范围内"""
+        """Check if path is within safe range"""
         try:
             target_path.resolve().relative_to(base_path.resolve())
             return True
@@ -62,30 +62,30 @@ class FileManager:
 
 
 class PathValidator:
-    """路径验证工具"""
+    """Path validation utilities"""
 
     @staticmethod
     def validate_workspace_path(path: Path) -> None:
-        """验证工作空间路径"""
+        """Validate workspace path"""
         if not path.exists():
-            raise FileNotFoundError(f"工作空间不存在: {path}")
+            raise FileNotFoundError(f"Workspace does not exist: {path}")
 
         if not path.is_dir():
-            raise NotADirectoryError(f"工作空间不是目录: {path}")
+            raise NotADirectoryError(f"Workspace is not a directory: {path}")
 
     @staticmethod
     def validate_file_path(path: Path) -> None:
-        """验证文件路径"""
+        """Validate file path"""
         if not path.exists():
-            raise FileNotFoundError(f"文件不存在: {path}")
+            raise FileNotFoundError(f"File does not exist: {path}")
 
         if not path.is_file():
-            raise IsADirectoryError(f"路径是目录而非文件: {path}")
+            raise IsADirectoryError(f"Path is a directory rather than a file: {path}")
 
     @staticmethod
     def validate_diff_path(path: Path, base_dir: Path) -> None:
-        """验证diff文件路径"""
+        """Validate diff file path"""
         if not FileManager.is_safe_path(base_dir, path):
-            raise ValueError(f"非法的diff路径: {path}")
+            raise ValueError(f"Invalid diff path: {path}")
 
         PathValidator.validate_file_path(path)

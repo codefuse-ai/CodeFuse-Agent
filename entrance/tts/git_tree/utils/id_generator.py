@@ -1,4 +1,4 @@
-"""ID生成工具"""
+"""ID generation utilities"""
 import hashlib
 import secrets
 from datetime import datetime
@@ -6,29 +6,29 @@ from typing import Optional
 
 
 class IDGenerator:
-    """ID生成器"""
+    """ID generator"""
     
     @staticmethod
     def generate_commit_id(timestamp: Optional[datetime] = None) -> str:
-        """生成提交ID"""
+        """Generate commit ID"""
         if timestamp is None:
             timestamp = datetime.now()
         
         timestamp_str = str(int(timestamp.timestamp()))
-        random_hash = secrets.token_hex(4)  # 8位随机字符串
+        random_hash = secrets.token_hex(4)  # 8-character random string
         return f"{timestamp_str}_{random_hash}"
     
     @staticmethod
     def generate_beam_path_id() -> str:
-        """生成beam路径ID"""
+        """Generate beam path ID"""
         return secrets.token_hex(8)
     
     @staticmethod
     def generate_workspace_id(index: int) -> str:
-        """生成工作空间ID"""
+        """Generate workspace ID"""
         return f"workspace_{index}"
     
     @staticmethod
     def hash_content(content: str) -> str:
-        """生成内容哈希"""
+        """Generate content hash"""
         return hashlib.sha256(content.encode()).hexdigest()[:16]

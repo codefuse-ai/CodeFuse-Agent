@@ -43,8 +43,23 @@ class GitTreeManagerSimplified:
             return "master"
 
     def _get_main_branch(self) -> str:
-        """获取主分支名，直接使用当前分支名"""
-        return self.current_branch
+        """Get the main branch name: first check for 'main' branch, then 'master' branch, finally use current branch name"""
+        try:
+            # First check if 'main' branch exists
+            branches = self._run_git_command(["branch", "--list", "main"])
+            if branches.strip():
+                return "main"
+            
+            # Then check if 'master' branch exists
+            branches = self._run_git_command(["branch", "--list", "master"])
+            if branches.strip():
+                return "master"
+            
+            # If neither exists, use current branch name
+            return self.current_branch
+        except subprocess.CalledProcessError:
+            # If command fails, fallback to current branch name
+            return self.current_branch
 
     def _run_git_command(self, cmd: List[str], cwd: Optional[Path] = None, max_retries: int = 3) -> str:
         """运行Git命令，包含锁文件处理和重试机制"""
@@ -502,7 +517,9 @@ class GitTreeManagerSimplified:
         """清理所有 beam_step_* 分支（本地+远程）"""
         try:
             #先切到主分支
+            print("正在切到主分支: %s", self.main_branch)
             self._run_git_command(["checkout", self.main_branch])
+            logger.info("已切到主分支: %s", self.main_branch)
             # 1. 本地分支 ----------------------------------------------------------
             locals = self._run_git_command(
                 ["branch", "--format=%(refname:short)", "--list", "beam_step_*"]

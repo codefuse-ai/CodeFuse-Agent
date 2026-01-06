@@ -862,7 +862,7 @@ class BeamSearchTTSProcessor(BaseTTSProcessor):
 
             index = 0
             for path in current_beam:
-                context.context_engine.add_assistant_message(path.response, iteration=step, path_id=path.path_id)
+                context.context_engine.add_assistant_message(path.response, iteration=step)
                 context.context_engine.write_llm_messages(context.llm)
                 self._execute_tool_calls_for_path(context, path, index)
                 index += 1
@@ -873,7 +873,9 @@ class BeamSearchTTSProcessor(BaseTTSProcessor):
             else:
                 choose_beam_search = self.choose_beam(all_candidates_paths, beam_k)
 
-            branches_file = "/workspace/logs/branches.txt"
+            branches_file = context.branches_file or "/workspace/logs/branches.txt"
+            # Ensure directory exists
+            Path(branches_file).parent.mkdir(parents=True, exist_ok=True)
             with open(branches_file, 'w', encoding='utf-8') as f:
                 for path in choose_beam_search:
                     if path.commit_id:
@@ -883,7 +885,9 @@ class BeamSearchTTSProcessor(BaseTTSProcessor):
 
         choose_beam_search = self.choose_beam(all_paths_history, beam_k)
 
-        branches_file = "/workspace/logs/branches.txt"
+        branches_file = context.branches_file or "/workspace/logs/branches.txt"
+        # Ensure directory exists
+        Path(branches_file).parent.mkdir(parents=True, exist_ok=True)
         with open(branches_file, 'w', encoding='utf-8') as f:
             for path in choose_beam_search:
                 if path.commit_id:

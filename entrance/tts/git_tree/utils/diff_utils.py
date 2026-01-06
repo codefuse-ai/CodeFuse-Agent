@@ -1,4 +1,4 @@
-"""Diff处理工具类"""
+"""Diff processing utility class"""
 import difflib
 import re
 from pathlib import Path
@@ -11,15 +11,15 @@ logger = logging.getLogger(__name__)
 
 
 class DiffProcessor:
-    """Diff处理类"""
+    """Diff processing class"""
     
     @staticmethod
     def _is_binary_file(file_path: Path) -> bool:
-        """检测文件是否为二进制文件"""
+        """Check if file is binary"""
         if not file_path.exists():
             return False
             
-        # 基于文件扩展名快速判断
+        # Quick check based on file extension
         binary_extensions = {
             '.DS_Store', '.ico', '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff',
             '.zip', '.tar', '.gz', '.rar', '.7z', '.exe', '.dll', '.so', '.dylib',
@@ -29,16 +29,16 @@ class DiffProcessor:
         if file_path.suffix.lower() in binary_extensions:
             return True
             
-        # 基于文件内容判断
+        # Check based on file content
         try:
             with file_path.open('rb') as f:
                 chunk = f.read(1024)
                 if not chunk:
                     return False
-                # 检查是否有null字节或大量非文本字符
+                # Check for null bytes or large amounts of non-text characters
                 if b'\x00' in chunk:
                     return True
-                # 检查文本字符比例
+                # Check text character ratio
                 text_characters = bytearray({7, 8, 9, 10, 12, 13, 27} | set(range(0x20, 0x100)))
                 nontext = chunk.translate(None, text_characters)
                 return float(len(nontext)) / len(chunk) > 0.30
@@ -47,15 +47,15 @@ class DiffProcessor:
             
     @staticmethod
     def create_diff(from_path: Path, to_path: Path) -> str:
-        """创建两个路径之间的unified diff"""
+        """Create unified diff between two paths"""
         if not from_path.exists():
-            raise FileNotFoundError(f"源路径不存在: {from_path}")
+            raise FileNotFoundError(f"Source path does not exist: {from_path}")
         if not to_path.exists():
-            raise FileNotFoundError(f"目标路径不存在: {to_path}")
+            raise FileNotFoundError(f"Target path does not exist: {to_path}")
         
         diff_lines = []
 
-        # 跳过常见的二进制文件和git内部文件
+        # Skip common binary files and git internal files
         skip_patterns = {
             '.DS_Store',
             '.git/',
@@ -81,7 +81,7 @@ class DiffProcessor:
         all_files = from_files.union(to_files)
         
         for rel_path in sorted(all_files):
-            # 跳过匹配的文件
+            # Skip matching files
             rel_path_str = str(rel_path)
             if any(pattern in rel_path_str for pattern in skip_patterns):
                 continue
@@ -89,7 +89,7 @@ class DiffProcessor:
             from_file = from_path / rel_path if from_path.is_dir() else from_path
             to_file = to_path / rel_path if to_path.is_dir() else to_path
             
-            # 检查是否为二进制文件
+            # Check if binary file
             if (from_file.exists() and DiffProcessor._is_binary_file(from_file)) or \
                (to_file.exists() and DiffProcessor._is_binary_file(to_file)):
                 continue
@@ -103,7 +103,7 @@ class DiffProcessor:
                 if to_file.exists():
                     to_content = to_file.read_text(encoding='utf-8')
             except (UnicodeDecodeError, IOError) as e:
-                logger.debug(f"跳过文件 {rel_path}: {e}")
+                logger.debug(f"Skipping file {rel_path}: {e}")
                 continue
             
             if from_content != to_content:
@@ -123,37 +123,37 @@ class DiffProcessor:
     
     @staticmethod
     def apply_diff(workspace_path: Path, diff_path: Path) -> None:
-        """应用diff到工作空间"""
+        """Apply diff to workspace"""
         if not workspace_path.exists():
-            raise FileNotFoundError(f"工作空间不存在: {workspace_path}")
+            raise FileNotFoundError(f"Workspace does not exist: {workspace_path}")
         if not workspace_path.is_dir():
-            raise NotADirectoryError(f"工作空间不是目录: {workspace_path}")
+            raise NotADirectoryError(f"Workspace is not a directory: {workspace_path}")
         if not diff_path.exists():
-            raise FileNotFoundError(f"diff文件不存在: {diff_path}")
+            raise FileNotFoundError(f"diff file does not exist: {diff_path}")
         
         patch_text = diff_path.read_text(encoding="utf-8")
         if not patch_text:
             return
         
-        # 拆分多文件diff
+        # Split multi-file diff
         file_sections = DiffProcessor._split_multi_file_diff(patch_text)
 
         for old_path, new_path, hunk_text in file_sections:
             target = (workspace_path / new_path).resolve()
 
-            # 验证路径安全
+            # Validate path safety
             if not FileManager.is_safe_path(workspace_path, target):
-                raise ValueError(f"可疑路径: {new_path}")
+                raise ValueError(f"Suspicious path: {new_path}")
 
-            # 处理删除文件
+            # Handle deleted files
             if DiffProcessor._is_deleted_file( new_path, hunk_text):
                 target = (workspace_path / old_path).resolve()
                 if target.exists():
                     FileManager.safe_remove(target)
-                    logger.info(f"删除文件: {target}")
+                    logger.info(f"Deleted file: {target}")
                 continue
 
-            # 处理新增文件
+            # Handle new files
             if DiffProcessor._is_new_file(old_path, hunk_text):
                 target.parent.mkdir(parents=True, exist_ok=True)
                 new_content = "\n".join(
@@ -161,30 +161,30 @@ class DiffProcessor:
                     if line.startswith("+")
                 )
                 target.write_text(new_content, encoding="utf-8")
-                logger.info(f"创建新文件: {target}")
+                logger.info(f"Created new file: {target}")
                 continue
 
-            # 修改现有文件
+            # Modify existing file
             if not target.exists():
-                raise FileNotFoundError(f"待修改文件不存在: {target}")
+                raise FileNotFoundError(f"File to be modified does not exist: {target}")
 
             if target.is_dir():
-                raise IsADirectoryError(f"目标路径是目录: {target}")
+                raise IsADirectoryError(f"Target path is a directory: {target}")
 
             target.parent.mkdir(parents=True, exist_ok=True)
 
-            # 应用单文件diff
+            # Apply single file diff
             DiffProcessor._apply_single_file_diff(target, hunk_text)
-            logger.info(f"修改文件: {target}")
+            logger.info(f"Modified file: {target}")
     
     @staticmethod
     def _split_multi_file_diff(text: str) -> List[Tuple[str, str, str]]:
-        """拆分多文件diff为单独的文件段"""
+        """Split multi-file diff into individual file sections"""
         file_header_re = re.compile(r'^--- (?P<old>.*?)\s*\n^\+\+\+ (?P<new>.*?)\s*\n', re.M)
         matches = list(file_header_re.finditer(text))
         
         if not matches:
-            print("未找到文件头")
+            print("No file headers found")
             return [("", "", "")]
         
         sections = []
@@ -199,11 +199,11 @@ class DiffProcessor:
     
     @staticmethod
     def _is_deleted_file(new_path: str, hunk_text: str) -> bool:
-        """判断是否为删除文件"""
+        """Check if file is deleted"""
         if new_path == "/dev/null":
             return True
         
-        # 检查hunk header
+        # Check hunk header
         for line in hunk_text.splitlines():
             if line.startswith("@@"):
                 try:
@@ -218,11 +218,11 @@ class DiffProcessor:
     
     @staticmethod
     def _is_new_file(old_path: str, hunk_text: str) -> bool:
-        """判断是否为新增文件"""
+        """Check if file is new"""
         if old_path == "/dev/null":
             return True
         
-        # 检查hunk header
+        # Check hunk header
         for line in hunk_text.splitlines():
             if line.startswith("@@"):
                 try:
@@ -236,13 +236,13 @@ class DiffProcessor:
     
     @staticmethod
     def _apply_single_file_diff(file_path: Path, hunk_text: str) -> None:
-        """应用单文件diff"""
+        """Apply single file diff"""
         if not file_path.exists():
-            raise FileNotFoundError(f"文件不存在: {file_path}")
+            raise FileNotFoundError(f"File does not exist: {file_path}")
         
-        # 检查是否为二进制文件
+        # Check if binary file
         if DiffProcessor._is_binary_file(file_path):
-            logger.warning(f"跳过二进制文件: {file_path}")
+            logger.warning(f"Skipping binary file: {file_path}")
             return
             
         source = file_path.read_text(encoding='utf-8').splitlines()
@@ -255,10 +255,10 @@ class DiffProcessor:
                 continue
             
             if line.startswith("@@"):
-                # 解析hunk header
+                # Parse hunk header
                 src_start, src_cnt = DiffProcessor._parse_hunk_header(line)
                 
-                # 保留前导未修改行
+                # Keep leading unmodified lines
                 while src_idx < src_start - 1:
                     if src_idx < len(source):
                         result.append(source[src_idx])
@@ -270,27 +270,27 @@ class DiffProcessor:
                 continue
             
             tag, content = line[0], line[1:]
-            if tag == " ":  # 上下文行
+            if tag == " ":  # context line
                 if src_idx < len(source):
                     result.append(source[src_idx])
                 src_idx += 1
-            elif tag == "-":  # 删除行
+            elif tag == "-":  # deleted line
                 src_idx += 1
-            elif tag == "+":  # 新增行
+            elif tag == "+":  # added line
                 result.append(content)
         
-        # 添加剩余行
+        # Add remaining lines
         result.extend(source[src_idx:])
         
-        # 写回文件
+        # Write back to file
         file_path.write_text('\n'.join(result), encoding='utf-8')
     
     @staticmethod
     def _parse_hunk_header(line: str) -> tuple[int, int]:
-        """解析hunk header"""
+        """Parse hunk header"""
         m = re.match(r"@@ -(\d+)(?:,(\d+))? \+\d+(?:,\d+)? @@", line)
         if not m:
-            raise ValueError(f"无法解析hunk header: {line}")
+            raise ValueError(f"Cannot parse hunk header: {line}")
         start = int(m.group(1))
         cnt = int(m.group(2)) if m.group(2) else 1
         return start, cnt

@@ -60,6 +60,7 @@ class AgentLoop:
             remote_tool_url: Optional[str] = None,
             remote_tool_instance_id: Optional[str] = None,
             remote_tool_timeout: int = 60,
+            branches_file: Optional[str] = None,
     ):
         """
         Initialize agent loop
@@ -77,6 +78,7 @@ class AgentLoop:
             remote_tool_url: URL of remote tool service
             remote_tool_instance_id: Instance ID for remote execution
             remote_tool_timeout: Timeout for remote tool calls in seconds
+            branches_file: Optional file path to save beam search branches information
         """
         self.llm = llm
         self.tool_registry = tool_registry
@@ -98,6 +100,8 @@ class AgentLoop:
             remote_instance_id=remote_tool_instance_id,
             remote_timeout=remote_tool_timeout,
         )
+        
+        self.branches_file = branches_file
 
         mainLogger.info(
             "AgentLoop initialized",
@@ -284,6 +288,7 @@ class AgentLoop:
                 available_tools=available_tools,
                 stream=stream,
                 prompt_tracker=prompt_tracker,
+                branches_file=self.branches_file,
             )
 
             # Process using the selected TTS processor

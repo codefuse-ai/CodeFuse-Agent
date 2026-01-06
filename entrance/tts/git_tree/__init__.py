@@ -1,4 +1,4 @@
-"""GitTree - 增强版Git树管理工具"""
+"""GitTree - Enhanced Git tree management tool"""
 
 __version__ = "2.0.0"
 __author__ = "GitTree Team"

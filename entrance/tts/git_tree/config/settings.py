@@ -1,4 +1,4 @@
-"""配置管理模块"""
+"""Configuration management module"""
 from pathlib import Path
 from dataclasses import dataclass
 import os
@@ -6,53 +6,51 @@ import os
 
 @dataclass
 class GitTreeConfig:
-    """GitTree配置类"""
+    """GitTree configuration class"""
     diff_workspace: Path
     base_workspace: Path
     max_workspaces: int = 2
 
     @property
     def run_dir(self) -> Path:
-        """运行空间目录"""
+        """Run space directory"""
         return self.diff_workspace / "run"
 
     @property
     def beam_path_infor(self) -> Path:
-        """beam_path_infor目录"""
+        """beam_path_infor directory"""
         return self.diff_workspace / "beam_path_infor"
 
     @property
     def judge_path(self) -> Path:
-        """beam_path_infor目录"""
+        """beam_path_infor directory"""
         return self.diff_workspace / "judge"
 
     @property
     def git_tree_dir(self) -> Path:
-        """git_tree目录"""
+        """git_tree directory"""
         return self.diff_workspace / "git_tree"
-
-
 
     @property
     def git_step_infor_dir(self) -> Path:
-        """git step信息存储目录"""
+        """git step information storage directory"""
         return self.git_tree_dir / "git_step_infor"
 
     @property
     def chat_histories_dir(self) -> Path:
-        """聊天历史存储目录"""
+        """Chat history storage directory"""
         return self.git_tree_dir / "chat_histories"
 
     @property
     def tree_file(self) -> Path:
-        """树结构文件"""
+        """Tree structure file"""
         return self.git_tree_dir / "tree.json"
 
     def ensure_directories(self) -> None:
-        """确保所有必要的目录存在，先清理已存在的文件"""
+        """Ensure all necessary directories exist, clean existing files first"""
         import shutil
 
-        # 清理已存在的目录和文件
+        # Clean existing directories and files
         directories_to_clean = [
             self.run_dir,
             self.beam_path_infor,
@@ -66,11 +64,11 @@ class GitTreeConfig:
             if directory.exists():
                 shutil.rmtree(directory)
 
-        # 如果tree.json文件存在，也删除
+        # Delete tree.json file if it exists
         if self.tree_file.exists():
             self.tree_file.unlink()
 
-        # 重新创建所有目录
+        # Recreate all directories
         directories = [
             self.run_dir,
             self.beam_path_infor,
@@ -85,7 +83,7 @@ class GitTreeConfig:
 
 
 def load_config_from_env() -> GitTreeConfig:
-    """从环境变量加载配置"""
+    """Load configuration from environment variables"""
     diff_workspace = Path(os.getenv(
         "diff_workspace",
         "/Users/jiawan/projects/SWE-bench_Verified/beam/chat_history/lzy-test__linkc-fork_2/output"
@@ -102,8 +100,9 @@ def load_config_from_env() -> GitTreeConfig:
         max_workspaces=max_workspaces
     )
 
+
 def load_config_from_user(base_workspace: Path, diff_workspace: Path, max_workspaces: int) -> GitTreeConfig:
-    """从用户输入加载配置"""
+    """Load configuration from user input"""
     return GitTreeConfig(
         diff_workspace=diff_workspace,
         base_workspace=base_workspace,

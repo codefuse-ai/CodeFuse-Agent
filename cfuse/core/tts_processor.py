@@ -27,6 +27,7 @@ class TTSContext:
     available_tools: Optional[List[str]] = None
     stream: bool = False
     prompt_tracker: Optional[Any] = None
+    branches_file: Optional[str] = None
 
 
 class BaseTTSProcessor(ABC):

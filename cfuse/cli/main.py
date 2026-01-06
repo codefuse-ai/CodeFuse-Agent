@@ -172,6 +172,11 @@ console = Console()
     default="default",
     help="TTS mode (default, beam_search)"
 )
+@click.option(
+    "--branches-file",
+    type=click.Path(),
+    help="File to save beam search branches information (default: ~/.cfuse/logs/branches.txt)"
+)
 def main(
         prompt: str,
         prompt_file: str,
@@ -208,7 +213,8 @@ def main(
         judge_model: str = None,
         judge_api_key: str = None,
         judge_base_url: str = None,
-        judge_temperature: float = 0.2
+        judge_temperature: float = 0.2,
+        branches_file: str = None
 ):
     """
     CFuse Agent - AI-powered coding assistant
@@ -364,7 +370,8 @@ def main(
             "remote_tool_url": remote_tool_url,
             "remote_tool_instance_id": remote_tool_instance_id,
             "remote_tool_timeout": remote_tool_timeout,
-            "tts": tts
+            "tts": tts,
+            "branches_file": branches_file
         }
         
         cfg = Config.merge_with_cli_args(cfg, **cli_args)

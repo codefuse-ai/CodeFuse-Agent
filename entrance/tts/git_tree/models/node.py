@@ -1,4 +1,4 @@
-"""Git树节点模型"""
+"""Git tree node model"""
 from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -8,7 +8,7 @@ from typing import List, Optional, Dict, Any
 
 @dataclass
 class GitTreeNode:
-    """表示git树中的一个节点"""
+    """Represents a node in the git tree"""
     commit_id: str
     parent_commit_id: Optional[str] = None
     message: str = ""
@@ -23,7 +23,7 @@ class GitTreeNode:
     is_stopped: str = "continue"
 
     def to_dict(self) -> Dict[str, Any]:
-        """转换为字典格式用于序列化"""
+        """Convert to dictionary format for serialization"""
         return {
             "commit_id": self.commit_id,
             "parent_commit_id": self.parent_commit_id,
@@ -42,7 +42,7 @@ class GitTreeNode:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> GitTreeNode:
-        """从字典创建节点"""
+        """Create node from dictionary"""
         return cls(
             commit_id=data["commit_id"],
             parent_commit_id=data.get("parent_commit_id"),
@@ -60,19 +60,19 @@ class GitTreeNode:
         )
 
     def add_child(self, child_id: str) -> None:
-        """添加子节点"""
+        """Add child node"""
         if child_id not in self.children:
             self.children.append(child_id)
 
 
 @dataclass
 class TreeMetadata:
-    """树结构元数据"""
+    """Tree structure metadata"""
     base_commit: Optional[str] = None
     root_commits: List[str] = field(default_factory=list)
     
     def to_dict(self) -> Dict[str, Any]:
-        """转换为字典"""
+        """Convert to dictionary"""
         return {
             "base_commit": self.base_commit,
             "root_commits": self.root_commits
@@ -80,7 +80,7 @@ class TreeMetadata:
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> TreeMetadata:
-        """从字典创建"""
+        """Create from dictionary"""
         return cls(
             base_commit=data.get("base_commit"),
             root_commits=data.get("root_commits", [])

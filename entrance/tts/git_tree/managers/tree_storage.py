@@ -1,4 +1,4 @@
-"""树存储管理器"""
+"""Tree storage manager"""
 import json
 from pathlib import Path
 from typing import Dict, List, Optional, Any
@@ -11,10 +11,10 @@ logger = logging.getLogger(__name__)
 
 
 class TreeStorageManager:
-    """树存储管理器，负责树的持久化存储"""
+    """Tree storage manager, responsible for tree persistence"""
     
     def __init__(self, config: GitTreeConfig):
-        """初始化存储管理器"""
+        """Initialize storage manager"""
         self.config = config
         self.config.ensure_directories()
         
@@ -24,9 +24,9 @@ class TreeStorageManager:
         self._load_existing_tree()
     
     def _load_existing_tree(self) -> None:
-        """加载已存在的git树"""
+        """Load existing git tree"""
         if not self.config.tree_file.exists():
-            logger.info("未找到现有树文件，创建新树")
+            logger.info("No existing tree file found, creating new tree")
             return
 
         try:
@@ -35,21 +35,21 @@ class TreeStorageManager:
 
             self.metadata = TreeMetadata.from_dict(data)
 
-            # 加载节点
+            # Load nodes
             for node_data in data.get("nodes", []):
                 node = GitTreeNode.from_dict(node_data)
                 self.nodes[node.commit_id] = node
 
-            logger.info(f"已加载现有git树，包含 {len(self.nodes)} 个节点")
+            logger.info(f"Loaded existing git tree with {len(self.nodes)} nodes")
 
         except Exception as e:
-            logger.error(f"加载git树失败: {e}")
-            # 如果加载失败，创建新的空树
+            logger.error(f"Failed to load git tree: {e}")
+            # Create new empty tree if loading fails
             self.nodes = {}
             self.metadata = TreeMetadata()
     
     def save_tree(self) -> None:
-        """保存git树到文件"""
+        """Save git tree to file"""
         try:
             data = {
                 **self.metadata.to_dict(),
@@ -59,91 +59,91 @@ class TreeStorageManager:
             with open(self.config.tree_file, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2, ensure_ascii=False, default=str)
 
-            logger.info(f"已保存git树，包含 {len(self.nodes)} 个节点")
+            logger.info(f"Saved git tree with {len(self.nodes)} nodes")
 
         except Exception as e:
-            logger.error(f"保存git树失败: {e}")
+            logger.error(f"Failed to save git tree: {e}")
             raise
 
     def add_node(self, node: GitTreeNode) -> None:
-        """添加节点"""
+        """Add node"""
         self.nodes[node.commit_id] = node
 
-        # 更新父节点的子节点列表
+        # Update parent node's child list
         if node.parent_commit_id and node.parent_commit_id in self.nodes:
             parent = self.nodes[node.parent_commit_id]
             parent.add_child(node.commit_id)
         else:
-            # 根节点
+            # Root node
             if node.commit_id not in self.metadata.root_commits:
                 self.metadata.root_commits.append(node.commit_id)
 
     def get_node(self, commit_id: str) -> Optional[GitTreeNode]:
-        """获取节点"""
+        """Get node"""
         return self.nodes.get(commit_id)
 
     def get_commit_path(self, commit_id: str) -> List[GitTreeNode]:
-        """获取从根到指定提交的路径"""
+        """Get path from root to specified commit"""
         if commit_id not in self.nodes:
             return []
 
         path = []
         current = self.nodes[commit_id]
 
-        # 构建从当前节点到根节点的路径
+        # Build path from current node to root node
         while current:
             path.insert(0, current)
             if not current.parent_commit_id:
                 break
             if current.parent_commit_id not in self.nodes:
                 break
-            current = self.nodes[current.parent_id]
+            current = self.nodes[current.parent_commit_id]
 
         return path
 
     def get_all_nodes(self) -> Dict[str, GitTreeNode]:
-        """获取所有节点"""
+        """Get all nodes"""
         return self.nodes.copy()
 
     def get_root_nodes(self) -> List[GitTreeNode]:
-        """获取所有根节点"""
+        """Get all root nodes"""
         return [self.nodes[commit_id] for commit_id in self.metadata.root_commits
                 if commit_id in self.nodes]
 
     def remove_node(self, commit_id: str) -> bool:
-        """删除节点及其所有子节点"""
+        """Delete node and all its child nodes"""
         if commit_id not in self.nodes:
             return False
 
-        # 递归删除子节点
+        # Recursively delete child nodes
         node = self.nodes[commit_id]
         for child_id in node.children:
             self.remove_node(child_id)
 
-        # 从父节点的子节点列表中移除
+        # Remove from parent node's child list
         if node.parent_commit_id and node.parent_commit_id in self.nodes:
             parent = self.nodes[node.parent_commit_id]
             if commit_id in parent.children:
                 parent.children.remove(commit_id)
 
-        # 从根节点列表中移除
+        # Remove from root node list
         if commit_id in self.metadata.root_commits:
             self.metadata.root_commits.remove(commit_id)
 
-        # 删除节点
+        # Delete node
         del self.nodes[commit_id]
-        logger.info(f"删除节点: {commit_id}")
+        logger.info(f"Deleted node: {commit_id}")
 
         return True
 
     def clear_tree(self) -> None:
-        """清空整个树"""
+        """Clear entire tree"""
         self.nodes.clear()
         self.metadata = TreeMetadata()
-        logger.info("已清空git树")
+        logger.info("Cleared git tree")
 
     def export_tree_structure(self) -> Dict[str, Any]:
-        """导出树结构用于调试"""
+        """Export tree structure for debugging"""
         return {
             "metadata": self.metadata.to_dict(),
             "nodes": {commit_id: node.to_dict() for commit_id, node in self.nodes.items()},
