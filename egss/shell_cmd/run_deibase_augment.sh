@@ -5,14 +5,14 @@ deibase_root="$root/x"
 augment_root="$root/x"
 traj_root="$root/traj"
 patch_root="$root/patches"
-docker_config_path=""
+
+voting_model_config="xx/moe_augment_model_config.json"
+data_path="path/to/swe-bench/test-00000-of-00001.parquet"
+docker_config_path="xx/docker_config_swebench_verified.json"
 
 api_key=""
 base_url=""
 model=""
-voting_model_config="xx/moe_augment_model_config.json"
-data_path="path/to/swe-bench/test-00000-of-00001.parquet"
-voting_model_config="xx/moe_augment_model_config.json"
 
 python run_deibase.py \
   --api-key $api_key \

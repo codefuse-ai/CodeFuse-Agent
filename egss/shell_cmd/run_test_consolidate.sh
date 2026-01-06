@@ -4,9 +4,10 @@ test_consolidate_root="$root/x"
 augment_root="$root/x"
 traj_root="$root/traj"
 patch_root="$root/patches"
-score_path="$root/x.json"
+# optional
+score_path="$root/score.json"
 data_path="path/to/swe-bench/test-00000-of-00001.parquet"
-docker_config_path=""
+docker_config_path="xx/docker_config_swebench_verified.json"
 
 api_key=""
 base_url=""

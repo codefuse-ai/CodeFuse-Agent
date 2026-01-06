@@ -40,6 +40,10 @@ Six essential tools for code exploration and modification:
 | **Tool Execution** | 6 built-in tools + remote execution |
 | **Observability** | Trajectory logs, execution metrics, cost tracking |
 
+## Entropy-Guided Stepwise Scaling (EGSS)
+![](./egss/images/egss_overview.png)
+Check [This](./egss/README.md) For Start
+
 ## 📦 Installation
 
 ```bash
