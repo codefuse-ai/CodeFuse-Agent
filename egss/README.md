@@ -7,7 +7,15 @@
 ## 🚀 Quick Start
 
 ### Run Dynamic Stepwise Search
-TODO
+#### 1. Install Package
+Refer to [this](../README.md)
+
+#### 2. Run Example
+```bash
+cd ./shell_cmd
+# Fill all required blank in run_egss_task.sh
+sh run_egss_task.sh
+```
 
 ### Run Test Consolidation Augmentation
 

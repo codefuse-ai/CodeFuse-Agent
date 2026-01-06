@@ -86,11 +86,11 @@ def load_config_from_env() -> GitTreeConfig:
     """Load configuration from environment variables"""
     diff_workspace = Path(os.getenv(
         "diff_workspace",
-        "/Users/jiawan/projects/SWE-bench_Verified/beam/chat_history/lzy-test__linkc-fork_2/output"
+        "/path/to/your/projects/lzy-test__linkc-fork_2/output"
     ))
     base_workspace = Path(os.getenv(
         "base_workspace",
-        "/Users/jiawan/projects/ant/linkc-fork"
+        "/path/to/your/projects/ant/linkc-fork"
     ))
     max_workspaces = int(os.getenv("GIT_TREE_MAX_WORKSPACES", "2"))
 

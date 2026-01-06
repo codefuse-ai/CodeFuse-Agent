@@ -51,7 +51,7 @@ def extract_model_beam_identifiers(project_path):
     例如：model_beam_step_72_index_5_17633774 -> beam_step_72_index_5_17633774
 
     Args:
-        project_path: 项目路径，如 '/Users/jiawan/Desktop/all_archives/astropy__astropy-13033'
+        project_path: 项目路径，如 '/path/to/your/astropy__astropy-13033'
 
     Returns:
         set: 包含所有标识符的集合（与tree.json中的节点格式匹配）

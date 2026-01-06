@@ -14,8 +14,8 @@ from cfuse.core.tts_processor import BaseTTSProcessor, TTSContext
 from cfuse.core.agent_loop import AgentEvent
 from pathlib import Path
 from cfuse.observability.logging.setup import setup_logging
-from entrance.tts.git_tree.config.settings import GitTreeConfig
-from entrance.tts.git_tree.managers.git_tree_manager_simplified import \
+from egss.dss.tts.git_tree.config.settings import GitTreeConfig
+from egss.dss.tts.git_tree.managers.git_tree_manager_simplified import \
     GitTreeManagerSimplified as GitTreeManager
 
 
