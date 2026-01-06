@@ -302,6 +302,7 @@ def _initialize_agent_loop(
         remote_tool_url=cfg.agent_config.remote_tool_url,
         remote_tool_instance_id=cfg.agent_config.remote_tool_instance_id,
         remote_tool_timeout=cfg.agent_config.remote_tool_timeout,
+        branches_file=cfg.logging.branches_file,
     )
     
     return agent_loop
@@ -313,6 +314,7 @@ def initialize_agent_components(
     verbose: bool,
     agent_profile: Optional[Any] = None,
     session_id: Optional[str] = None,
+    tts: str = "default",
 ) -> Dict[str, Any]:
     """
     Initialize all agent components (shared logic for headless and interactive modes)
@@ -443,4 +445,3 @@ def initialize_agent_components(
         "resumed_conversation": resumed_conversation,
         "read_tracker": read_tracker,
     }
-

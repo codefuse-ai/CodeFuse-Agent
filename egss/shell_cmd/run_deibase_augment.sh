@@ -5,6 +5,7 @@ deibase_root="$root/x"
 augment_root="$root/x"
 traj_root="$root/traj"
 patch_root="$root/patches"
+docker_config_path=""
 
 voting_model_config="xx/moe_augment_model_config.json"
 data_path="path/to/swe-bench/test-00000-of-00001.parquet"

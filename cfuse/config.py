@@ -51,6 +51,7 @@ class LoggingConfig:
     """Logging configuration"""
     logs_dir: Optional[str] = None
     verbose: Optional[bool] = None
+    branches_file: Optional[str] = None
 
 
 # Default values (centralized)
@@ -86,6 +87,7 @@ DEFAULTS = {
     "logging": {
         "logs_dir": "~/.cfuse/logs",
         "verbose": False,
+        "branches_file": None,
     },
 }
 
